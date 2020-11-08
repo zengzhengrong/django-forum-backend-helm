@@ -1,0 +1,143 @@
+# Default values for django-forum-backend.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+images:
+  api:
+    repository: zengzhengrong889/django-forum-backend
+    pullPolicy: IfNotPresent
+    tag: ""
+  redis:    
+    repository: zengzhengrong889/django-forum-backend
+    pullPolicy: IfNotPresent
+    tag: ""
+  mysql:
+    repository: mysql
+    pullPolicy: IfNotPresent
+    tag: "5.7"
+  phpmyadmin:
+    repository: phpmyadmin/phpmyadmin
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+
+
+mysql:
+  enabled: true
+  secret:
+    mysqlRootPassword: cm9vdA==
+    mysqlUser: YWRtaW4=
+    mysqlPassword: enpyYWRtaW4=
+  configMap:
+    mysqld:
+      - name: ""
+        value: ""
+  deploy:
+    envs:
+      - name: "MYSQL_DATABASE"
+        value: "forum"
+      - name: "TZ"
+        value: "Asia/Shanghai"
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  service:
+    type: ClusterIP
+    port: 3306
+
+phpmyadmin:
+  enabled: true
+  deploy:
+    envs:
+      - name: "PMA_HOST"
+        value: "django-forum-mysql"
+      - name: "TZ"
+        value: "Asia/Shanghai"
+    livenessProbe:
+      tcpSocket:
+        port: 3306
+      initialDelaySeconds: 180
+      periodSeconds: 60
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  service:
+    type: ClusterIP
+    port: 80
+  ingress:
+    enabled: true
+    annotations: {}
+    kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: chart.phpmyadmin.izhim.cn
+        paths:
+        - "/"
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+  
+
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "django-forum"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+
+# resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

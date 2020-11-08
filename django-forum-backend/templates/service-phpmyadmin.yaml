@@ -1,0 +1,19 @@
+{{- if .Values.phpmyadmin.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "django-forum-backend.fullname" . }}-phpmyadmin
+  labels:
+    {{- include "django-forum-backend.labels" . | nindent 4 }}
+    app: {{ include "django-forum-backend.fullname" . }}-phpmyadmin
+spec:
+  type: {{ .Values.phpmyadmin.service.type }}
+  ports:
+    - port: {{ .Values.phpmyadmin.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "django-forum-backend.selectorLabels" . | nindent 4 }}
+
+{{- end }}

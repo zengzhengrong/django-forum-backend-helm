@@ -28,7 +28,7 @@ RUN if [ "${INSTALL_NODE}" = "true" ]; then su vscode -c "source /usr/local/shar
 
 RUN curl -s https://mirrors.huaweicloud.com/kubernetes/apt/doc/apt-key.gpg | apt-key add -
 # [Optional] Uncomment this section to install additional OS packages.
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+RUN apt-get -o Acquire::Check-Valid-Until=false update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends kubectl kubectx
 
 

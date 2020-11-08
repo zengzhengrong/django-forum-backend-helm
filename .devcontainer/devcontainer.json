@@ -31,7 +31,12 @@
 
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
-		"ms-python.python"
+		"ms-python.python",
+		"ms-kubernetes-tools.vscode-kubernetes-tools",
+		"ipedrazas.kubernetes-snippets",
+		"okteto.kubernetes-context",
+		"tim-koehler.helm-intellisense",
+		"technosophos.vscode-helm"
 	]
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

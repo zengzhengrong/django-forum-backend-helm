@@ -1,16 +1,19 @@
+{{- if .Values.mysql.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "chart.fullname" . }}
+  name: {{ include "django-forum-backend.fullname" . }}-mysql
   labels:
-    {{- include "chart.labels" . | nindent 4 }}
+    {{- include "django-forum-backend.labels" . | nindent 4 }}
+    app: {{ include "django-forum-backend.fullname" . }}-mysql
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "chart.selectorLabels" . | nindent 6 }}
+      {{- include "django-forum-backend.selectorLabels" . | nindent 6 }}
+      app: {{ include "django-forum-backend.fullname" . }}-mysql
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,21 +21,27 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "chart.selectorLabels" . | nindent 8 }}
+        {{- include "django-forum-backend.selectorLabels" . | nindent 8 }}
+        app: {{ include "django-forum-backend.fullname" . }}-mysql
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "chart.serviceAccountName" . }}
+      serviceAccountName: {{ include "django-forum-backend.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Chart.Name }}-mysql
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.images.phpmyadmin.repository }}:{{ .Values.images.phpmyadmin.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.phpmyadmin.pullPolicy }}
+          env:
+          {{- range .Values.phpmyadmin.deploy.envs }}
+            - name: {{ .name }}
+              value: {{ .value }}
+          {{- end }}
           ports:
             - name: http
               containerPort: 80
@@ -46,7 +55,7 @@ spec:
               path: /
               port: http
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.phpmyadmin.deploy.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -59,3 +68,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- end }}
