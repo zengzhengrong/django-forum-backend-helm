@@ -10,9 +10,9 @@ images:
     pullPolicy: IfNotPresent
     tag: ""
   redis:    
-    repository: zengzhengrong889/django-forum-backend
+    repository: redis
     pullPolicy: IfNotPresent
-    tag: ""
+    tag: "6.0"
   mysql:
     repository: mysql
     pullPolicy: IfNotPresent
@@ -24,16 +24,65 @@ images:
 
 
 
+
+redis:
+  enabled: true
+  configMap:
+    conf:
+      - ""
+  deploy:
+    envs:
+      - name: "TZ"
+        value: "Asia/Shanghai"
+    containers:
+      command:
+        - "redis-server"
+      args:
+        - "/etc/redis/redis.conf"
+        - "--protected-mode"
+        - "no"
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  service:
+    type: ClusterIP
+    port: 6379
+  persistentVolumeClaim:
+    accessModes: "ReadWriteMany"
+    storageClassName: "nfs-client"
+    storage: "200M"
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - django-forum-backend-redis
+            topologyKey: kubernetes.io/hostname
+        
+        
+    
+
 mysql:
   enabled: true
   secret:
-    mysqlRootPassword: cm9vdA==
-    mysqlUser: YWRtaW4=
-    mysqlPassword: enpyYWRtaW4=
+    mysqlRootPassword: root
+    mysqlUser: admin
+    mysqlPassword: zzradmin
   configMap:
     mysqld:
-      - name: ""
-        value: ""
+      - name: max_connections 
+        value: "1000"
+      - name: sql_mode
+        value: NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
   deploy:
     envs:
       - name: "MYSQL_DATABASE"
@@ -42,21 +91,48 @@ mysql:
         value: "Asia/Shanghai"
     resources:
       limits:
-        cpu: 1000m
-        memory: 128Mi
+        cpu: 200m
+        memory: 256Mi
       requests:
         cpu: 100m
         memory: 128Mi
   service:
     type: ClusterIP
     port: 3306
+  persistentVolumeClaim:
+    accessModes: "ReadWriteMany"
+    storageClassName: "nfs-client"
+    storage: "2Gi"
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - django-forum-backend-mysql
+          topologyKey: kubernetes.io/hostname
+    # podAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #   - labelSelector:
+    #       matchExpressions:
+    #       - key: app
+    #         operator: In
+    #         values:
+    #         - django-forum-backend-redis
+    #     topologyKey: kubernetes.io/hostname
+     
+  
 
 phpmyadmin:
   enabled: true
   deploy:
     envs:
       - name: "PMA_HOST"
-        value: "django-forum-mysql"
+        value: "django-forum-backend-mysql-service"
       - name: "TZ"
         value: "Asia/Shanghai"
     livenessProbe:
@@ -140,4 +216,4 @@ nodeSelector: {}
 
 tolerations: []
 
-affinity: {}
+

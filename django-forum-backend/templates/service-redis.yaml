@@ -1,0 +1,18 @@
+{{- if .Values.redis.enabled -}}
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ include "django-forum-backend.fullname" . }}-redis-service
+  labels:
+    {{- include "django-forum-backend.labels" . | nindent 4 }}
+    app: {{ include "django-forum-backend.fullname" . }}-redis-service
+spec:
+  type: {{ .Values.redis.service.type }}
+  ports:
+    - name: redis
+      port: {{ .Values.redis.service.port }}
+      targetPort: 6379
+      protocol: TCP
+  selector:
+    app: {{ include "django-forum-backend.fullname" . }}-redis
+{{- end }}

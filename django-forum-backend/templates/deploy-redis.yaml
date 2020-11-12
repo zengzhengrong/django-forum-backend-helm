@@ -1,0 +1,72 @@
+{{- if .Values.redis.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "django-forum-backend.fullname" . }}-redis
+  labels:
+    {{- include "django-forum-backend.labels" . | nindent 4 }}
+    app: {{ include "django-forum-backend.fullname" . }}-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "django-forum-backend.selectorLabels" . | nindent 6 }}
+      app: {{ include "django-forum-backend.fullname" . }}-redis
+  template:
+    metadata:
+      labels:
+        {{- include "django-forum-backend.selectorLabels" . | nindent 8 }}
+        app: {{ include "django-forum-backend.fullname" . }}-redis
+    spec:
+      terminationGracePeriodSeconds: 20
+      {{- with .Values.mysql.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "django-forum-backend.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-redis
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.images.redis.repository }}:{{ .Values.images.redis.tag | default .Chart.AppVersion }}"
+          command:
+          {{- range .Values.redis.deploy.containers.command }}
+          - {{ . | quote }}
+          {{- end }}
+          args:
+          {{- range .Values.redis.deploy.containers.args }}
+          - {{ . | quote }}
+          {{- end }}
+          env:
+          {{- range .Values.redis.deploy.envs }}
+            - name: {{ .name }}
+              value: {{ .value }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.redis.deploy.resources | nindent 12 }}
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: "TCP"
+          volumeMounts:
+            - name: "redis-conf"
+              mountPath: "/etc/redis"
+            - name: "redis-persistent-storage"
+              mountPath: "/var/lib/redis"
+      volumes:
+        - name: "redis-conf"
+          configMap:
+            name: {{ include "django-forum-backend.fullname" . }}-redis-conf
+            items:
+              - key: "redis.conf"
+                path: "redis.conf"
+        - name: redis-persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ include "django-forum-backend.fullname" . }}-redis-pvc
+{{- end }}

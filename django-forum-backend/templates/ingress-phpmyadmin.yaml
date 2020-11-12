@@ -36,7 +36,7 @@ spec:
           {{- range .paths }}
           - path: {{ . }}
             backend:
-              serviceName: {{ $fullName }}-phpmyadmin
+              serviceName: {{ $fullName }}-phpmyadmin-service
               servicePort: {{ $svcPort }}
           {{- end }}
     {{- end }}

@@ -24,6 +24,11 @@ spec:
         {{- include "django-forum-backend.selectorLabels" . | nindent 8 }}
         app: {{ include "django-forum-backend.fullname" . }}-mysql
     spec:
+      terminationGracePeriodSeconds: 20
+      {{- with .Values.mysql.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -35,33 +40,56 @@ spec:
         - name: {{ .Chart.Name }}-mysql
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.images.phpmyadmin.repository }}:{{ .Values.images.phpmyadmin.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.images.phpmyadmin.pullPolicy }}
+          image: "{{ .Values.images.mysql.repository }}:{{ .Values.images.mysql.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.mysql.pullPolicy }}
           env:
-          {{- range .Values.phpmyadmin.deploy.envs }}
+          {{- range .Values.mysql.deploy.envs }}
             - name: {{ .name }}
               value: {{ .value }}
           {{- end }}
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "django-forum-backend.fullname" . }}-mysql-secret
+                  key: mysql-user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "django-forum-backend.fullname" . }}-mysql-secret
+                  key: mysql-password
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "django-forum-backend.fullname" . }}-mysql-secret
+                  key: mysql-root-password
           ports:
-            - name: http
-              containerPort: 80
+            - name: mysql
+              containerPort: 3306
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 180
+            periodSeconds: 60
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+            - name: mysql-conf
+              mountPath: /etc/mysql/conf.d
           resources:
-            {{- toYaml .Values.phpmyadmin.deploy.resources | nindent 12 }}
+            {{- toYaml .Values.mysql.deploy.resources | nindent 12 }}
+      volumes:
+      - name: "mysql-conf"
+        configMap:
+          name: {{ include "django-forum-backend.fullname" . }}-mysql-conf
+          items:
+            - key: "mysql.cnf"
+              path: "mysql.cnf"
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: {{ include "django-forum-backend.fullname" . }}-mysql-pvc
       {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.tolerations }}

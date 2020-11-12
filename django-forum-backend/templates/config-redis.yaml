@@ -1,0 +1,17 @@
+{{- if .Values.redis.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "django-forum-backend.fullname" . }}-redis-conf
+  labels:
+    {{- include "django-forum-backend.labels" . | nindent 4 }}
+data:
+  redis.conf: |-
+    {{- range .Values.redis.configMap.conf }}
+    {{ if . }}
+    {{ . }}
+    {{ end }}
+    {{- end }}
+    dir /var/lib/redis
+    port 6379
+{{- end }}

@@ -1,0 +1,19 @@
+{{- if .Values.mysql.enabled -}}
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ include "django-forum-backend.fullname" . }}-mysql-service
+  labels:
+    {{- include "django-forum-backend.labels" . | nindent 4 }}
+    app: {{ include "django-forum-backend.fullname" . }}-mysql-service
+spec:
+  type: {{ .Values.mysql.service.type }}
+  ports:
+    - name: mysql
+      port: {{ .Values.mysql.service.port }}
+      targetPort: 3306
+      protocol: TCP
+  selector:
+    app: {{ include "django-forum-backend.fullname" . }}-mysql
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
