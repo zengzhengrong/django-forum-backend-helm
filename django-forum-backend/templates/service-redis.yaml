@@ -15,4 +15,5 @@ spec:
       protocol: TCP
   selector:
     app: {{ include "django-forum-backend.fullname" . }}-redis
+    app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
