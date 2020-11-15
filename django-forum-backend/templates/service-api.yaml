@@ -1,0 +1,19 @@
+{{- if .Values.api.enabled -}}
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ include "django-forum-backend.fullname" . }}-api-service
+  labels:
+    {{- include "django-forum-backend.labels" . | nindent 4 }}
+    app: {{ include "django-forum-backend.fullname" . }}-api-service
+spec:
+  type: {{ .Values.api.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.api.service.port }}
+      targetPort: 5555
+      protocol: TCP
+  selector:
+    app: {{ include "django-forum-backend.fullname" . }}-api
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

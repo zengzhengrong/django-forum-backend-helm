@@ -1,0 +1,16 @@
+{{- if .Values.api.enabled -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "django-forum-backend.fullname" . }}-api-pvc
+  labels:
+    {{- include "django-forum-backend.labels" . | nindent 4 }}
+    app: {{ include "django-forum-backend.fullname" . }}-api-pvc
+spec:
+  accessModes:
+    - {{ .Values.api.persistentVolumeClaim.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.api.persistentVolumeClaim.storage | quote }}
+  storageClassName: {{ .Values.api.persistentVolumeClaim.storageClassName }}
+{{- end }}

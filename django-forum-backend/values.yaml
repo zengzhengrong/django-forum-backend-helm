@@ -5,10 +5,14 @@
 replicaCount: 1
 
 images:
+  nginx:
+    repository: zengzhengrong889/django-forum-backend
+    pullPolicy: IfNotPresent
+    tag: "latest"
   api:
     repository: zengzhengrong889/django-forum-backend
     pullPolicy: IfNotPresent
-    tag: ""
+    tag: "latest"
   redis:    
     repository: redis
     pullPolicy: IfNotPresent
@@ -23,6 +27,55 @@ images:
     tag: "latest"
 
 
+api:
+  enabled: true
+  configMap:
+    databaseUrl: ""
+    redisUrl: ""
+  deploy:
+    envs:
+      - name: "TZ"
+        value: "Asia/Shanghai"
+    containers:
+      command:
+        waitDB: ""
+        waitDBPort: ""
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 128m
+        memory: 128Mi
+  service:
+    type: ClusterIP
+    port: 5555
+  persistentVolumeClaim:
+    accessModes: "ReadWriteMany"
+    storageClassName: "nfs-client"
+    storage: "100M"
+  affinity: {}
+    # podAntiAffinity:
+    #   preferredDuringSchedulingIgnoredDuringExecution:
+    #     - weight: 100
+    #       podAffinityTerm:
+    #         labelSelector:
+    #           matchExpressions:
+    #             - key: app
+    #               operator: In
+    #               values:
+    #                 - django-forum-backend-api
+    #         topologyKey: kubernetes.io/hostname
+    # podAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #     - labelSelector:
+    #         matchExpressions:
+    #           - key: app
+    #             operator: In
+    #             values:
+    #               - django-forum-backend-mysql
+    #               - django-forum-backend-redis
+    #       topologyKey: kubernetes.io/hostname
 
 
 redis:

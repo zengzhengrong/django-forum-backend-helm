@@ -1,0 +1,89 @@
+{{- if .Values.api.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "django-forum-backend.fullname" . }}-api
+  labels:
+    {{- include "django-forum-backend.labels" . | nindent 4 }}
+    app: {{ include "django-forum-backend.fullname" . }}-api
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "django-forum-backend.labels" . | nindent 6 }}
+      app: {{ include "django-forum-backend.fullname" . }}-api
+  template:
+    metadata:
+      labels:
+        {{- include "django-forum-backend.labels" . | nindent 8 }}
+        app: {{ include "django-forum-backend.fullname" . }}-api
+    spec:
+      terminationGracePeriodSeconds: 20
+      {{- with .Values.api.affinity }}
+      affinity:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - image: busybox
+          command:
+          - sh
+          - -c
+          - echo 65535 > /proc/sys/net/core/somaxconn
+          imagePullPolicy: Always
+          name: init
+          securityContext:
+            privileged: true
+      containers:
+        - name: {{ .Chart.Name }}-api
+          image: "{{ .Values.images.api.repository }}:{{ .Values.images.api.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.api.pullPolicy }}
+          env:
+          {{- range .Values.api.deploy.envs }}
+            - name: {{ .name }}
+              value: {{ .value }}
+          {{- end }}
+          command:
+          - ./wait-for-it.sh
+          - -h
+          {{- if .Values.api.deploy.containers.command.waitDbService -}}
+          - {{ .Values.api.deploy.containers.command.waitDB }}
+          {{- else -}}
+          - {{ include "django-forum-backend.fullname" . }}-mysql
+          {{- end -}}
+          - -p
+          {{- if .Values.mysql.enabled -}}
+          - {{ .Values.mysql.service.port | quote }}
+          {{- else if .Values.api.deploy.containers.command.waitDBPort -}}
+          - {{ .Values.api.deploy.containers.command.waitDBPort | quote }}
+          {{- else -}}
+          - "3306"
+          {{- end -}}
+          - -s
+          - --
+          - ./entrypoint.sh
+          ports:
+            - name: http
+              containerPort: 5555
+          envFrom:
+            - configMapRef:
+                name: {{ include "django-forum-backend.fullname" . }}-api-conf
+          resources:
+            {{- toYaml .Values.api.deploy.resources | nindent 12 }}
+          volumeMounts:
+            - name: django-forum-backend-data
+              mountPath: /api/run
+            - name: django-forum-backend-data
+              mountPath: /api/static
+            - name: django-forum-backend-data
+              mountPath: /api/media
+      volumes:
+        - name: django-forum-backend-data
+          persistentVolumeClaim:
+            claimName: {{ include "django-forum-backend.fullname" . }}-api-pvc
+{{- end }}
