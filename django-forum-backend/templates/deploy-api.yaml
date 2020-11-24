@@ -8,7 +8,7 @@ metadata:
     app: {{ include "django-forum-backend.fullname" . }}-api
 spec:
   {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.api.deploy.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
@@ -51,19 +51,21 @@ spec:
           command:
           - ./wait-for-it.sh
           - -h
-          {{- if .Values.api.deploy.containers.command.waitDbService -}}
+          {{- if .Values.api.deploy.containers.command.waitDbService }}
           - {{ .Values.api.deploy.containers.command.waitDB }}
-          {{- else -}}
-          - {{ include "django-forum-backend.fullname" . }}-mysql
-          {{- end -}}
+          {{- else }}
+          - {{ include "django-forum-backend.fullname" . }}-mysql-service
+          {{- end }}
           - -p
-          {{- if .Values.mysql.enabled -}}
+          {{- if .Values.mysql.enabled }}
           - {{ .Values.mysql.service.port | quote }}
-          {{- else if .Values.api.deploy.containers.command.waitDBPort -}}
+          {{- else if .Values.api.deploy.containers.command.waitDBPort }}
           - {{ .Values.api.deploy.containers.command.waitDBPort | quote }}
-          {{- else -}}
+          {{- else }}
           - "3306"
-          {{- end -}}
+          {{- end }}
+          - -t
+          - "30"
           - -s
           - --
           - ./entrypoint.sh

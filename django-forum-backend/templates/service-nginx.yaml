@@ -1,0 +1,18 @@
+{{- if .Values.nginx.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "django-forum-backend.fullname" . }}-nginx-service
+  labels:
+    {{- include "django-forum-backend.labels" . | nindent 4 }}
+    app: {{ include "django-forum-backend.fullname" . }}-nginx-service
+spec:
+  type: {{ .Values.nginx.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.nginx.service.port }}
+      targetPort: 80
+  selector:
+    app: {{ include "django-forum-backend.fullname" . }}-nginx
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

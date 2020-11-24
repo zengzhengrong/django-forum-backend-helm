@@ -1,0 +1,57 @@
+{{- if .Values.nginx.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "django-forum-backend.fullname" . }}-nginx
+  labels:
+    {{- include "django-forum-backend.labels" . | nindent 4 }}
+    app: {{ include "django-forum-backend.fullname" . }}-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "django-forum-backend.labels" . | nindent 6 }}
+      app: {{ include "django-forum-backend.fullname" . }}-nginx
+  template:
+    metadata:
+      labels:
+        {{- include "django-forum-backend.labels" . | nindent 8 }}
+        app: {{ include "django-forum-backend.fullname" . }}-nginx
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-nginx
+          image: "{{ .Values.images.nginx.repository }}:{{ .Values.images.nginx.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.nginx.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            {{- range .Values.nginx.deploy.envs }}
+            - name: {{ .name }}
+              value: {{ .value }}
+            {{- end }}
+            - name: FLOWER_BACKEND
+              value: "http://{{ include "django-forum-backend.fullname" . }}-api-service:5555"
+          resources:
+            {{- toYaml .Values.nginx.deploy.resources | nindent 12 }}
+          volumeMounts:
+            - name: "nginx-conf"
+              mountPath: "/etc/nginx/templates"
+            - name: "nginx-persistent-storage"  
+              mountPath: "/api/run"
+            - name: "nginx-persistent-storage"
+              mountPath: "/api/static"
+            - name: "nginx-persistent-storage"
+              mountPath: "/api/media"
+              
+      volumes:
+        - name: "nginx-conf"
+          configMap:
+            name: {{ include "django-forum-backend.fullname" . }}-nginx-conf
+            items:
+              - key: "django.conf.template"
+                path: "default.conf.template"
+        - name: "nginx-persistent-storage"
+          persistentVolumeClaim:
+            claimName: {{ include "django-forum-backend.fullname" . }}-api-pvc
+{{- end }}

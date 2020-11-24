@@ -1,26 +1,22 @@
-{{- if .Values.phpmyadmin.enabled -}}
-{{- if .Values.phpmyadmin.ingress.enabled -}}
+{{- if .Values.nginx.enabled -}}
+{{- if .Values.nginx.ingress.enabled -}}
 {{- $fullName := include "django-forum-backend.fullname" . -}}
-{{- $svcPort := .Values.phpmyadmin.service.port -}}
-{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
-apiVersion: networking.k8s.io/v1beta1
-{{- else -}}
+{{- $svcPort := .Values.nginx.service.port -}}
 apiVersion: extensions/v1beta1
-{{- end }}
 kind: Ingress
 metadata:
-  name: {{ $fullName }}-ingress
+  name: {{ include "django-forum-backend.fullname" . }}-nginx-ingress
   labels:
     {{- include "django-forum-backend.labels" . | nindent 4 }}
-    app: {{ include "django-forum-backend.fullname" . }}-phpmyadmin-ingress
-  {{- with .Values.phpmyadmin.ingress.annotations }}
+    app: {{ include "django-forum-backend.fullname" . }}-nginx-ingress
+  {{- with .Values.nginx.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if .Values.phpmyadmin.ingress.tls }}
+  {{- if .Values.nginx.ingress.tls }}
   tls:
-    {{- range .Values.phpmyadmin.ingress.tls }}
+    {{- range .Values.nginx.ingress.tls }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -29,16 +25,16 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.phpmyadmin.ingress.hosts }}
+    {{- range .Values.nginx.ingress.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:
           {{- range .paths }}
           - path: {{ . }}
             backend:
-              serviceName: {{ $fullName }}-phpmyadmin-service
+              serviceName: {{ $fullName }}-nginx-service
               servicePort: {{ $svcPort }}
           {{- end }}
     {{- end }}
-  {{- end }}
+{{- end }}
 {{- end }}

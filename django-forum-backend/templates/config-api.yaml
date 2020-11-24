@@ -10,11 +10,11 @@ data:
   {{- if .Values.api.configMap.databaseUrl }}
   K8S_DATABASE_URL: {{ .Values.api.configMap.databaseUrl | quote }}
   {{- else }}
-  K8S_DATABASE_URL: "mysql://{{ .Values.mysql.secret.mysqlUser }}:{{ .Values.mysql.secret.mysqlPassword }}@{{ include "django-forum-backend.fullname" . }}-mysql:3306/forum"
+  K8S_DATABASE_URL: "mysql://{{ .Values.mysql.secret.mysqlUser }}:{{ .Values.mysql.secret.mysqlPassword }}@{{ include "django-forum-backend.fullname" . }}-mysql-service:3306/forum"
   {{- end }}
   {{- if .Values.api.configMap.redisUrl }}
   K8S_CELERY_REDIS_URL: {{ .Values.api.configMap.redisUrl | quote }}
   {{- else }}
-  K8S_CELERY_REDIS_URL: "redis://{{ include "django-forum-backend.fullname" . }}-redis:{{ .Values.redis.service.port }}"
+  K8S_CELERY_REDIS_URL: "redis://{{ include "django-forum-backend.fullname" . }}-redis-service:{{ .Values.redis.service.port }}"
   {{- end }}
 {{- end }}
