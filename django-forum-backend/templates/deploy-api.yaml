@@ -51,7 +51,7 @@ spec:
           command:
           - ./wait-for-it.sh
           - -h
-          {{- if .Values.api.deploy.containers.command.waitDbService }}
+          {{- if .Values.api.deploy.containers.command.waitDB }}
           - {{ .Values.api.deploy.containers.command.waitDB }}
           {{- else }}
           - {{ include "django-forum-backend.fullname" . }}-mysql-service

@@ -37,7 +37,8 @@
 		"okteto.kubernetes-context",
 		"tim-koehler.helm-intellisense",
 		"technosophos.vscode-helm",
-		"vscode-icons-team.vscode-icons"
+		"vscode-icons-team.vscode-icons",
+		"shd101wyy.markdown-preview-enhanced"
 	]
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
