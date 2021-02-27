@@ -1,6 +1,7 @@
-apiVersion: v1
+apiVersion: v2
 name: django-forum-backend
 description: Django fourm backend
+icon: https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=984013574,2171957555&fm=26&gp=0.jpg
 
 
 keywords:
