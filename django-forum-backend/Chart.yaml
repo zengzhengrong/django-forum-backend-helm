@@ -1,6 +1,23 @@
-apiVersion: v2
+apiVersion: v1
 name: django-forum-backend
-description: A Helm chart for Kubernetes
+description: Django fourm backend
+
+
+keywords:
+  - Python
+  - Django
+  - Mysql
+  - Redis
+  - phpmyadmin
+  - Nginx
+  - Celery
+
+home: https://github.com/zengzhengrong/django-forum-backend-helm
+
+maintainers:
+  - name: zeron
+    email: bhg889@163.com
+
 
 # A chart can be either an 'application' or a 'library' chart.
 #
