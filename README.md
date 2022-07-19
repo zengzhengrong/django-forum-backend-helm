@@ -5,22 +5,22 @@ helm chart for django-forum-backend
 ### Install 
 
 
-#### Config django-forum-backend/values.yaml and install all resources by
+#### Config charts/django-forum-backend/values.yaml and install all resources by
 ```
-helm install django-forum-backend django-forum-backend/ --namespace default --values django-forum-backend/values.yaml
+helm install django-forum-backend charts/django-forum-backend/ --namespace default --values charts/django-forum-backend/values.yaml
 ```
 
 #### Just enable nginx with api ,config your redis and db
 
 ```
-helm install django-forum-backend django-forum-backend/ --namespace default \
+helm install django-forum-backend charts/django-forum-backend/ --namespace default \
 --set mysql.enabled=false \
 --set redis.enabled=false \
 --set phpmyadmin.enabled=false \
 --set api.configMap.databaseUrl=mysql://{{user}}:{{user-passwrod}}@{{host}}:{{host-port}}/{{dbname}} \
 --set api.configMap.redisUrl=redis://{{host}}:{{port}} \
 --set api.deploy.containers.command.waitDB={{host}} \
---values django-forum-backend/values.yaml
+--values charts/django-forum-backend/values.yaml
 ```
 
 
@@ -29,12 +29,12 @@ helm install django-forum-backend django-forum-backend/ --namespace default \
 #### If enable ingress by 
 
 ```
-helm install django-forum-backend django-forum-backend/ --namespace default \
+helm install django-forum-backend charts/django-forum-backend/ --namespace default \
 --set nginx.ingress.enabled=true \
 --set nginx.ingress.hosts[0].host=xxx.com \
 --set phpmyadmin.ingress.enabled=true \
 --set phpmyadmin.ingress.hosts[0].host=xxx.com \
---values django-forum-backend/values.yaml
+--values charts/django-forum-backend/values.yaml
 ```
 
 
@@ -73,20 +73,20 @@ helm show values django-forum-backend/
 If install by 
 
 ```
-helm install django-forum-backend django-forum-backend/ --namespace default \
+helm install django-forum-backend charts/django-forum-backend/ --namespace default \
 --set mysql.enabled=false \
 --set redis.enabled=false \
 --set phpmyadmin.enabled=false \
 --set api.configMap.databaseUrl=mysql://{{user}}:{{user-passwrod}}@{{host}}:{{host-port}}/{{dbname}} \
 --set api.configMap.redisUrl=redis://{{host}}:{{port}} \
 --set api.deploy.containers.command.waitDB={{host}} \
---values django-forum-backend/values.yaml
+--values charts/django-forum-backend/values.yaml
 ```
 
 And want to enable ingress by
 
 ```
-helm upgrade django-forum-backend django-forum-backend/ \
+helm upgrade django-forum-backend charts/django-forum-backend/ \
 --namespace default  \
 --reuse-values \
 --set nginx.ingress.enabled=true \
